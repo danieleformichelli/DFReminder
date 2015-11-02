@@ -1,5 +1,6 @@
 package com.formichelli.dfreminder;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.service.notification.NotificationListenerService;
@@ -7,59 +8,77 @@ import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Timer;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Listen for notifications
- *
+ * <p/>
  * Created by daniele on 29/10/15.
  */
 public class DFReminderNotificationListener extends NotificationListenerService {
-    private final Collection<Integer> activeNotifications;
-    private final SharedPreferences sharedPreferences;
-    private final String frequencyPreferenceString;
-    private Timer reminderTimer;
+    private final Map<String, Collection<Integer>> notifications;
+    private RemindTimer reminderTimer;
+    private SharedPreferences sharedPreferences;
+    private String isEnabledPreferenceString;
+    private Set<String> packageWhitelist;
 
     public DFReminderNotificationListener() {
-        activeNotifications = new HashSet<>();
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        frequencyPreferenceString = getString(R.string.pref_title_remind_frequency);
+        notifications = new HashMap<>();
+    }
+
+    @Override
+    public void onCreate() {
+        final Context context = getApplicationContext();
+        reminderTimer = new RemindTimer(getApplicationContext());
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        isEnabledPreferenceString = context.getString(R.string.pref_key_enable_dfreminder);
+        packageWhitelist = new HashSet<>();
+        packageWhitelist.add("android");
     }
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        if (activeNotifications.isEmpty()) {
-            startReminderTimer();
-        }
+        final String packageName = sbn.getPackageName();
+        if (packageWhitelist.contains(packageName))
+            return;
 
-        activeNotifications.add(sbn.getId());
+        synchronized (notifications) {
+            if (!sharedPreferences.getBoolean(isEnabledPreferenceString, false)) {
+                reminderTimer.stopReminderTimerIfRunning();
+                return;
+            }
+
+            Collection<Integer> packageNotifications = notifications.get(packageName);
+            if (packageNotifications == null) {
+                packageNotifications = new HashSet<>();
+                notifications.put(packageName, packageNotifications);
+            }
+            packageNotifications.add(sbn.getId());
+
+            reminderTimer.restartReminderTimer();
+        }
     }
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
-        super.onNotificationRemoved(sbn);
-        activeNotifications.remove(sbn.getId());
+        final String packageName = sbn.getPackageName();
+        if (packageWhitelist.contains(packageName))
+            return;
 
-        if (activeNotifications.isEmpty()) {
-            stopReminderTimer();
+        synchronized (notifications) {
+            Collection<Integer> packageNotifications = notifications.get(packageName);
+            if (packageNotifications == null)
+                return;
+
+            packageNotifications.remove(sbn.getId());
+            if (packageNotifications.isEmpty()) {
+                notifications.remove(packageName);
+                if (notifications.isEmpty())
+                    reminderTimer.stopReminderTimerIfRunning();
+            }
         }
     }
-
-    private void startReminderTimer() {
-        if (reminderTimer != null) {
-            Log.e("DFReminderListener", "reminderTimer should never be null");
-            stopReminderTimer();
-        }
-
-        final int reminderInterval = sharedPreferences.getInt(frequencyPreferenceString, 60) * 1000;
-        reminderTimer = new Timer(false);
-        reminderTimer.scheduleAtFixedRate(new RemindTask(), reminderInterval, reminderInterval);
-    }
-
-    private void stopReminderTimer() {
-        reminderTimer.cancel();
-        reminderTimer = null;
-    }
-
 }

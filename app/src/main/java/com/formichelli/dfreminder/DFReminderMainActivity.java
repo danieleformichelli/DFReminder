@@ -1,6 +1,5 @@
 package com.formichelli.dfreminder;
 
-
 import android.content.Context;
 import android.content.res.Configuration;
 import android.media.Ringtone;
@@ -26,51 +25,6 @@ import android.text.TextUtils;
  * API Guide</a> for more information on developing a Settings UI.
  */
 public class DFReminderMainActivity extends AppCompatPreferenceActivity {
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setupActionBar();
-        addPreferencesFromResource(R.xml.dfreminder);
-
-        bindPreferenceSummaryToValue(findPreference("remind_frequency"));
-        bindPreferenceSummaryToValue(findPreference("ringtone"));
-        bindPreferenceSummaryToValue(findPreference("vibrate"));
-    }
-
-    /**
-     * Set up the {@link android.app.ActionBar}, if the API is available.
-     */
-    private void setupActionBar() {
-        // nothing to do
-    }
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean onIsMultiPane() {
-        return isXLargeTablet(this);
-    }
-
-    /**
-     * Helper method to determine if the device has an extra-large screen. For
-     * example, 10" tablets are extra-large.
-     */
-    private static boolean isXLargeTablet(Context context) {
-        return (context.getResources().getConfiguration().screenLayout
-                & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_XLARGE;
-    }
-
-    /**
-     * {@inheritDoc}
-    @Override
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public void onBuildHeaders(List<Header> target) {
-        loadHeadersFromResource(R.xml.pref_headers, target);
-    }
-     */
-
     /**
      * A preference value change listener that updates the preference's summary
      * to reflect its new value.
@@ -142,5 +96,33 @@ public class DFReminderMainActivity extends AppCompatPreferenceActivity {
                 PreferenceManager
                         .getDefaultSharedPreferences(preference.getContext())
                         .getString(preference.getKey(), ""));
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setupActionBar();
+        addPreferencesFromResource(R.xml.dfreminder);
+
+        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_remind_frequency)));
+        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_ringtone)));
+        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_vibrate_list)));
+        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_vibrate_pattern)));
+
+    }
+
+    /**
+     * Set up the {@link android.app.ActionBar}, if the API is available.
+     */
+    private void setupActionBar() {
+        // nothing to do
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean onIsMultiPane() {
+        return false;
     }
 }

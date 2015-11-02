@@ -1,44 +1,42 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <SwitchPreference
-        android:key="enable_dfreminder"
-        android:title="@string/pref_title_enable_dfreminder"
-        android:defaultValue="false" />
+        android:defaultValue="false"
+        android:key="@string/pref_key_enable_dfreminder"
+        android:title="@string/pref_title_enable_dfreminder" />
 
     <ListPreference
-        android:key="remind_frequency"
-        android:title="@string/pref_title_remind_frequency"
+        android:defaultValue="300000"
         android:entries="@array/pref_remind_frequency_titles"
         android:entryValues="@array/pref_remind_frequency_values"
-        android:defaultValue="5"
+        android:key="@string/pref_key_remind_frequency"
         android:negativeButtonText="@null"
-        android:positiveButtonText="@null" />
+        android:positiveButtonText="@null"
+        android:title="@string/pref_title_remind_frequency" />
 
     <RingtonePreference
-        android:key="ringtone"
-        android:title="@string/pref_title_ringtone"
+        android:defaultValue="content://settings/system/notification_sound"
+        android:key="@string/pref_key_ringtone"
         android:ringtoneType="notification"
-        android:defaultValue="content://settings/system/notification_sound" />
+        android:title="@string/pref_title_ringtone" />
 
     <ListPreference
-        android:key="vibrate"
-        android:title="@string/pref_title_vibrate_list"
-        android:defaultValue="0"
+        android:defaultValue="Once"
         android:entries="@array/pref_vibrate_list_titles"
         android:entryValues="@array/pref_vibrate_list_values"
+        android:key="@string/pref_key_vibrate_list"
         android:negativeButtonText="@null"
-        android:positiveButtonText="@null" />
+        android:positiveButtonText="@null"
+        android:title="@string/pref_title_vibrate_list" />
 
-    <!-- NOTE: EditTextPreference accepts EditText attributes. -->
-    <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code.
     <EditTextPreference
-        android:key="example_text"
-        android:title="@string/pref_title_display_name"
-        android:defaultValue="@string/pref_default_display_name"
+        android:key="@string/pref_key_vibrate_pattern"
+        android:title="@string/pref_title_vibrate_pattern"
+        android:defaultValue="@string/pref_default_vibrate_pattern"
         android:selectAllOnFocus="true"
-        android:inputType="textCapWords"
-        android:capitalize="words"
+        android:inputType="number"
         android:singleLine="true"
-        android:maxLines="1" />-->
+        android:maxLines="1"
+        android:digits="1234567890," />
 
 </PreferenceScreen>
