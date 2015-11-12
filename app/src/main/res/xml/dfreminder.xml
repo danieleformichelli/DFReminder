@@ -6,7 +6,7 @@
         android:title="@string/pref_title_enable_dfreminder" />
 
     <ListPreference
-        android:defaultValue="300000"
+        android:defaultValue="@string/pref_remind_frequency_default"
         android:entries="@array/pref_remind_frequency_titles"
         android:entryValues="@array/pref_remind_frequency_values"
         android:key="@string/pref_key_remind_frequency"
@@ -21,7 +21,7 @@
         android:title="@string/pref_title_ringtone" />
 
     <ListPreference
-        android:defaultValue="Once"
+        android:defaultValue="Pattern"
         android:entries="@array/pref_vibrate_list_titles"
         android:entryValues="@array/pref_vibrate_list_values"
         android:key="@string/pref_key_vibrate_list"
@@ -38,5 +38,12 @@
         android:singleLine="true"
         android:maxLines="1"
         android:digits="1234567890," />
+
+    <Preference
+        android:key="@string/pref_key_try"
+        android:title="@string/pref_title_try"
+        android:defaultValue=""
+        android:singleLine="true"
+        android:maxLines="1" />
 
 </PreferenceScreen>

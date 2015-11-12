@@ -1,12 +1,12 @@
 <resources>
-    <string name="app_name">DF Reminder</string>
+    <string name="app_name" translatable="false">DF Reminder</string>
 
-    <string name="dfreminder_service_name">DF Reminder Listener Service</string>
+    <string name="dfreminder_service_name" translatable="false">DF Reminder Listener Service</string>
 
-    <string name="pref_key_enable_dfreminder">enable_dfreminder</string>
+    <string name="pref_key_enable_dfreminder" translatable="false">enable_dfreminder</string>
     <string name="pref_title_enable_dfreminder">Enable DF Reminder</string>
 
-    <string name="pref_key_vibrate_list">vibrate</string>
+    <string name="pref_key_vibrate_list" translatable="false">vibrate</string>
     <string name="pref_title_vibrate_list">Vibrate</string>
     <string-array name="pref_vibrate_list_titles">
         <item>No</item>
@@ -18,12 +18,14 @@
         <item>Once</item>
         <item>Pattern</item>
     </string-array>
+    <string name="pref_vibrate_once_pattern" translatable="false">0,200</string>
+    <string name="pref_vibrate_pattern_default" translatable="false">0,200,50,200,50,200</string>
 
-    <string name="pref_key_ringtone">ringtone</string>
+    <string name="pref_key_ringtone" translatable="false">ringtone</string>
     <string name="pref_title_ringtone">Ringtone</string>
-    <string name="pref_ringtone_silent">Silent</string>
+    <string name="pref_ringtone_silent" translatable="false">Silent</string>
 
-    <string name="pref_key_remind_frequency">remind_frequency</string>
+    <string name="pref_key_remind_frequency" translatable="false">remind_frequency</string>
     <string name="pref_title_remind_frequency">Remind Frequency</string>
     <string-array name="pref_remind_frequency_titles">
         <item>1 minutes</item>
@@ -41,9 +43,18 @@
         <item>1800000</item>
         <item>3600000</item>
     </string-array>
+    <string name="pref_remind_frequency_default" translatable="false">300000</string>
 
-    <string name="pref_key_vibrate_pattern">pattern</string>
+    <string name="pref_key_vibrate_pattern" translatable="false">pattern</string>
     <string name="pref_title_vibrate_pattern">Vibrate Pattern</string>
-    <string name="pref_default_vibrate_pattern">0,200,50,200,50,200</string>
+    <string name="pref_default_vibrate_pattern" translatable="false">0,200,50,200,50,200</string>
 
+    <string name="action_info">Info</string>
+    <string name="info_title" translatable="false">DF Reminder</string>
+    <string name="info_msg">With DF Reminder you will not miss any notification.\nIn order for it to work you have to grant notification access to the application (use button below).</string>
+
+    <string name="goto_notification_access">SETTINGS</string>
+
+    <string name="pref_key_try" translatable="false">try</string>
+    <string name="pref_title_try">Try notification</string>
 </resources>

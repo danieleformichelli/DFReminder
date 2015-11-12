@@ -1,17 +1,23 @@
 package com.formichelli.dfreminder;
 
-import android.content.Context;
-import android.content.res.Configuration;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
+import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -25,11 +31,15 @@ import android.text.TextUtils;
  * API Guide</a> for more information on developing a Settings UI.
  */
 public class DFReminderMainActivity extends AppCompatPreferenceActivity {
+    public static final String TAG = "DF Reminder";
+    private SharedPreferences sharedPreferences;
+    private String vibratePatternPreferenceString;
+
     /**
      * A preference value change listener that updates the preference's summary
      * to reflect its new value.
      */
-    private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
+    private Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
         @Override
         public boolean onPreferenceChange(Preference preference, Object value) {
             String stringValue = value.toString();
@@ -41,11 +51,7 @@ public class DFReminderMainActivity extends AppCompatPreferenceActivity {
                 int index = listPreference.findIndexOfValue(stringValue);
 
                 // Set the summary to reflect the new value.
-                preference.setSummary(
-                        index >= 0
-                                ? listPreference.getEntries()[index]
-                                : null);
-
+                preference.setSummary(index >= 0 ? listPreference.getEntries()[index] : null);
             } else if (preference instanceof RingtonePreference) {
                 // For ringtone preferences, look up the correct display value
                 // using RingtoneManager.
@@ -69,10 +75,17 @@ public class DFReminderMainActivity extends AppCompatPreferenceActivity {
                 }
 
             } else {
+                if (preference.getKey().equals(vibratePatternPreferenceString)) {
+                    // patterna must contain at least 2 numbers and must not contain two consecutive commas
+                    if (stringValue.contains(",,") || stringValue.split(",").length < 2)
+                        return false;
+                }
+
                 // For all other preferences, set the summary to the value's
                 // simple string representation.
                 preference.setSummary(stringValue);
             }
+
             return true;
         }
     };
@@ -86,7 +99,7 @@ public class DFReminderMainActivity extends AppCompatPreferenceActivity {
      *
      * @see #sBindPreferenceSummaryToValueListener
      */
-    private static void bindPreferenceSummaryToValue(Preference preference) {
+    private void bindPreferenceSummaryToValue(Preference preference) {
         // Set the listener to watch for value changes.
         preference.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
 
@@ -104,11 +117,67 @@ public class DFReminderMainActivity extends AppCompatPreferenceActivity {
         setupActionBar();
         addPreferencesFromResource(R.xml.dfreminder);
 
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        vibratePatternPreferenceString = getString(R.string.pref_key_vibrate_pattern);
+
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_remind_frequency)));
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_ringtone)));
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_vibrate_list)));
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_vibrate_pattern)));
 
+        findPreference(getString(R.string.pref_key_try)).setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                new RemindTask(DFReminderMainActivity.this).run();
+                return false;
+            }
+        });
+
+        if (isFirstRun())
+            showInfoDialog();
+    }
+
+    private boolean isFirstRun() {
+        if (!sharedPreferences.getBoolean("firstRun", true))
+            return false;
+
+        sharedPreferences.edit().putBoolean("firstRun", false).apply();
+        return true;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.dfreminder_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_info:
+                showInfoDialog();
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+
+        }
+    }
+
+    private void showInfoDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.info_title)
+                .setMessage(R.string.info_msg)
+                .setPositiveButton("OK", null)
+                .setNeutralButton(R.string.goto_notification_access, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
+                    }
+                })
+                .create()
+                .show();
     }
 
     /**

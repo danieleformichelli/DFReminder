@@ -42,12 +42,16 @@ public class DFReminderNotificationListener extends NotificationListenerService 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         final String packageName = sbn.getPackageName();
-        if (packageWhitelist.contains(packageName))
+        if (packageWhitelist.contains(packageName)) {
+            Log.d(DFReminderMainActivity.TAG, "New notification from " + sbn.getPackageName() + " ignored");
             return;
+        }
 
         synchronized (notifications) {
             if (!sharedPreferences.getBoolean(isEnabledPreferenceString, false)) {
+                Log.d(DFReminderMainActivity.TAG, "New notification from " + sbn.getPackageName() + ": DF reminder disabled");
                 reminderTimer.stopReminderTimerIfRunning();
+                notifications.clear();
                 return;
             }
 
@@ -58,6 +62,7 @@ public class DFReminderNotificationListener extends NotificationListenerService 
             }
             packageNotifications.add(sbn.getId());
 
+            Log.d(DFReminderMainActivity.TAG, "New notification from " + sbn.getPackageName() + ", total: " + packageNotifications.size());
             reminderTimer.restartReminderTimer();
         }
     }
@@ -65,8 +70,10 @@ public class DFReminderNotificationListener extends NotificationListenerService 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         final String packageName = sbn.getPackageName();
-        if (packageWhitelist.contains(packageName))
+        if (!packageWhitelist.contains(packageName)) {
+            Log.d(DFReminderMainActivity.TAG, "Removed notification from " + sbn.getPackageName() + " ignored");
             return;
+        }
 
         synchronized (notifications) {
             Collection<Integer> packageNotifications = notifications.get(packageName);
@@ -79,6 +86,8 @@ public class DFReminderNotificationListener extends NotificationListenerService 
                 if (notifications.isEmpty())
                     reminderTimer.stopReminderTimerIfRunning();
             }
+
+            Log.d(DFReminderMainActivity.TAG, "Removed notification from " + sbn.getPackageName() + ", total: " + packageNotifications.size());
         }
     }
 }
