@@ -5,17 +5,20 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import java.util.Collection;
 import java.util.Timer;
 
 public class RemindTimer {
     private final Context context;
     private final SharedPreferences sharedPreferences;
     private final String frequencyPreferenceString;
+    private final Collection<String> notifications;
 
     private Timer timer;
 
-    public RemindTimer(Context context) {
+    public RemindTimer(Context context, Collection<String> notifications) {
         this.context = context;
+        this.notifications = notifications;
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         frequencyPreferenceString = context.getString(R.string.pref_key_remind_frequency);
     }
@@ -23,7 +26,6 @@ public class RemindTimer {
     public synchronized void startReminderTimerIfNotRunning() {
         if (timer != null)
             return;
-
 
         final long reminderInterval = Integer.valueOf(sharedPreferences.getString(frequencyPreferenceString, "300000"));
         timer = new Timer(false);
@@ -40,9 +42,12 @@ public class RemindTimer {
         Log.d(DFReminderMainActivity.TAG, "Stopped notification timer");
     }
 
-    public void restartReminderTimer() {
+    public synchronized void restartReminderTimer() {
         stopReminderTimerIfRunning();
         startReminderTimerIfNotRunning();
     }
 
+    public synchronized Collection<String> getNotifications() {
+        return notifications;
+    }
 }

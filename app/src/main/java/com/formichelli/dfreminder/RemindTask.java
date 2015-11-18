@@ -7,6 +7,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import java.util.TimerTask;
 
@@ -41,64 +42,70 @@ class RemindTask extends TimerTask {
 
     @Override
     public void run() {
-        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        synchronized (remindTimer) {
+            final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 
-        if (remindTimer != null) {
-            if (!sharedPreferences.getBoolean(isEnabledPreferenceString, false)) {
+            if (remindTimer.getNotifications().size() == 0 || !sharedPreferences.getBoolean(isEnabledPreferenceString, false)) {
                 remindTimer.stopReminderTimerIfRunning();
                 return;
             }
-        }
 
-        // ringtone
-        final String ringtone = sharedPreferences.getString(ringtonePreferenceString, "DEFAULT_SOUND");
-        if (!ringtone.equals("None")) {
-            try {
-                final MediaPlayer mediaPlayer = new MediaPlayer();
-                mediaPlayer.setAudioStreamType(AudioManager.STREAM_NOTIFICATION);
-                mediaPlayer.setDataSource(context, Uri.parse(ringtone));
-                mediaPlayer.prepare();
-                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                    @Override
-                    public void onCompletion(MediaPlayer mp) {
-                        mediaPlayer.release();
-                    }
-                });
-                mediaPlayer.start();
-            } catch (Exception e) {
-                // Nothing to do
+            StringBuilder notifications = new StringBuilder();
+            for (String packageString : remindTimer.getNotifications())
+                notifications.append(packageString).append(",");
+            Log.d("REMIND_TASK", "Active notifications: " + notifications.toString());
+
+            // ringtone
+            final String ringtone = sharedPreferences.getString(ringtonePreferenceString, "DEFAULT_SOUND");
+            if (!ringtone.equals("None")) {
+                try {
+                    final MediaPlayer mediaPlayer = new MediaPlayer();
+                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_NOTIFICATION);
+                    mediaPlayer.setDataSource(context, Uri.parse(ringtone));
+                    mediaPlayer.prepare();
+                    mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                        @Override
+                        public void onCompletion(MediaPlayer mp) {
+                            mediaPlayer.release();
+                        }
+                    });
+                    mediaPlayer.start();
+                } catch (Exception e) {
+                    // Nothing to do
+                }
+            }
+
+            // vibrate
+            final String vibrate = sharedPreferences.getString(vibratePreferenceString, "Pattern");
+            long[] pattern;
+            switch (vibrate) {
+                case "Once":
+                    pattern = new long[2];
+                    pattern[0] = 0;
+                    pattern[1] = 300;
+                    break;
+
+                case "Pattern":
+                    final String vibratePattern = sharedPreferences.getString(vibratePatternPreferenceString, "0,200,50,200,50,200");
+                    final String[] vibratePatternElements = vibratePattern.split(",");
+                    //Set the pattern for vibration
+                    pattern = new long[vibratePatternElements.length];
+                    for (int i = 0; i < pattern.length; i++)
+                        pattern[i] = Integer.valueOf(vibratePatternElements[i].trim());
+                    break;
+
+                default:
+                    return;
+            }
+
+            //Start the vibration
+            ((Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE)).vibrate(pattern, -1);
+
+            // modify the interval if necessary
+            if (Long.valueOf(sharedPreferences.getString(frequencyPreferenceString, "300000")) != reminderInterval) {
+                reminderInterval = Long.valueOf(sharedPreferences.getString(frequencyPreferenceString, "300000"));
+                remindTimer.restartReminderTimer();
             }
         }
-
-        // vibrate
-        final String vibrate = sharedPreferences.getString(vibratePreferenceString, "Pattern");
-        long[] pattern;
-        switch (vibrate) {
-            case "Once":
-                pattern = new long[2];
-                pattern[0] = 0;
-                pattern[1] = 300;
-                break;
-
-            case "Pattern":
-                final String vibratePattern = sharedPreferences.getString(vibratePatternPreferenceString, "0,200,50,200,50,200");
-                final String[] vibratePatternElements = vibratePattern.split(",");
-                //Set the pattern for vibration
-                pattern = new long[vibratePatternElements.length];
-                for (int i = 0; i < pattern.length; i++)
-                    pattern[i] = Integer.valueOf(vibratePatternElements[i].trim());
-                break;
-
-            default:
-                return;
-        }
-
-        //Start the vibration
-        ((Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE)).vibrate(pattern, -1);
-
-        // modify the interval if necessary
-        if (remindTimer != null)
-            if (Long.valueOf(sharedPreferences.getString(frequencyPreferenceString, "300000")) != reminderInterval)
-                remindTimer.restartReminderTimer();
     }
 }

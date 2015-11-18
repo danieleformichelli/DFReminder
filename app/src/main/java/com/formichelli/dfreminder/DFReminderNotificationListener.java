@@ -8,9 +8,7 @@ import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -19,75 +17,67 @@ import java.util.Set;
  * Created by daniele on 29/10/15.
  */
 public class DFReminderNotificationListener extends NotificationListenerService {
-    private final Map<String, Collection<Integer>> notifications;
-    private RemindTimer reminderTimer;
+    private final Collection<String> notifications;
+    private RemindTimer remindTimer;
     private SharedPreferences sharedPreferences;
     private String isEnabledPreferenceString;
-    private Set<String> packageWhitelist;
+    private Set<String> packageWhiteList;
 
     public DFReminderNotificationListener() {
-        notifications = new HashMap<>();
+        notifications = new HashSet<String>();
     }
 
     @Override
     public void onCreate() {
         final Context context = getApplicationContext();
-        reminderTimer = new RemindTimer(getApplicationContext());
+        remindTimer = new RemindTimer(getApplicationContext(), notifications);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         isEnabledPreferenceString = context.getString(R.string.pref_key_enable_dfreminder);
-        packageWhitelist = new HashSet<>();
-        packageWhitelist.add("android");
+        packageWhiteList = new HashSet<>();
     }
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        final String packageName = sbn.getPackageName();
-        if (packageWhitelist.contains(packageName)) {
-            Log.d(DFReminderMainActivity.TAG, "New notification from " + sbn.getPackageName() + " ignored");
-            return;
-        }
-
-        synchronized (notifications) {
-            if (!sharedPreferences.getBoolean(isEnabledPreferenceString, false)) {
-                Log.d(DFReminderMainActivity.TAG, "New notification from " + sbn.getPackageName() + ": DF reminder disabled");
-                reminderTimer.stopReminderTimerIfRunning();
-                notifications.clear();
+        synchronized (remindTimer) {
+            final String packageName = sbn.getPackageName();
+            if (packageWhiteList.contains(packageName)) {
+                Log.d(DFReminderMainActivity.TAG, "New notification from " + sbn.getPackageName() + " ignored");
                 return;
             }
 
-            Collection<Integer> packageNotifications = notifications.get(packageName);
-            if (packageNotifications == null) {
-                packageNotifications = new HashSet<>();
-                notifications.put(packageName, packageNotifications);
+            if (!sbn.isClearable()) {
+                Log.d(DFReminderMainActivity.TAG, "Not clearable notification from " + sbn.getPackageName() + " ignored");
+                return;
             }
-            packageNotifications.add(sbn.getId());
 
-            Log.d(DFReminderMainActivity.TAG, "New notification from " + sbn.getPackageName() + ", total: " + packageNotifications.size());
-            reminderTimer.restartReminderTimer();
+            if (!sharedPreferences.getBoolean(isEnabledPreferenceString, false)) {
+                Log.d(DFReminderMainActivity.TAG, "New notification from " + sbn.getPackageName() + ": DF reminder disabled");
+                return;
+            }
+
+            notifications.add(sbn.getPackageName());
+
+            Log.d(DFReminderMainActivity.TAG, "New notification from " + sbn.getPackageName() + ", total: " + notifications.size());
+            remindTimer.restartReminderTimer();
         }
     }
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
-        final String packageName = sbn.getPackageName();
-        if (!packageWhitelist.contains(packageName)) {
-            Log.d(DFReminderMainActivity.TAG, "Removed notification from " + sbn.getPackageName() + " ignored");
-            return;
-        }
-
-        synchronized (notifications) {
-            Collection<Integer> packageNotifications = notifications.get(packageName);
-            if (packageNotifications == null)
+        synchronized (remindTimer) {
+            final String packageName = sbn.getPackageName();
+            if (!packageWhiteList.contains(packageName)) {
+                Log.d(DFReminderMainActivity.TAG, "Removed notification from " + sbn.getPackageName() + " ignored");
                 return;
-
-            packageNotifications.remove(sbn.getId());
-            if (packageNotifications.isEmpty()) {
-                notifications.remove(packageName);
-                if (notifications.isEmpty())
-                    reminderTimer.stopReminderTimerIfRunning();
             }
 
-            Log.d(DFReminderMainActivity.TAG, "Removed notification from " + sbn.getPackageName() + ", total: " + packageNotifications.size());
+            if (!sbn.isClearable()) {
+                Log.d(DFReminderMainActivity.TAG, "Removed not clearable notification from " + sbn.getPackageName() + " ignored");
+                return;
+            }
+
+            notifications.remove(packageName);
+            Log.d(DFReminderMainActivity.TAG, "Removed notifications from " + sbn.getPackageName());
         }
     }
 }
