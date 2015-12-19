@@ -6,7 +6,9 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.util.Collection;
-import java.util.Timer;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class RemindTimer {
     private final Context context;
@@ -14,7 +16,7 @@ public class RemindTimer {
     private final String frequencyPreferenceString;
     private final Collection<String> notifications;
 
-    private Timer timer;
+    private ScheduledExecutorService scheduler;
 
     public RemindTimer(Context context, Collection<String> notifications) {
         this.context = context;
@@ -23,22 +25,22 @@ public class RemindTimer {
         frequencyPreferenceString = context.getString(R.string.pref_key_remind_frequency);
     }
 
-    public synchronized void startReminderTimerIfNotRunning() {
-        if (timer != null)
+    private synchronized void startReminderTimerIfNotRunning() {
+        if (scheduler != null)
             return;
 
         final long reminderInterval = Integer.valueOf(sharedPreferences.getString(frequencyPreferenceString, "300000"));
-        timer = new Timer(false);
-        timer.scheduleAtFixedRate(new RemindTask(context, this, reminderInterval), reminderInterval, reminderInterval);
+        scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(new RemindTask(context, this), reminderInterval, reminderInterval, TimeUnit.MILLISECONDS);
         Log.d(DFReminderMainActivity.TAG, "Started notification timer with interval: " + reminderInterval);
     }
 
     public synchronized void stopReminderTimerIfRunning() {
-        if (timer == null)
+        if (scheduler == null)
             return;
 
-        timer.cancel();
-        timer = null;
+        scheduler.shutdownNow();
+        scheduler = null;
         Log.d(DFReminderMainActivity.TAG, "Stopped notification timer");
     }
 

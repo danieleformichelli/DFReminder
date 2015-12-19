@@ -13,23 +13,20 @@ import java.util.Set;
 
 /**
  * Listen for notifications
- * <p/>
+ * <p>
  * Created by daniele on 29/10/15.
  */
 public class DFReminderNotificationListener extends NotificationListenerService {
-    private final Collection<String> notifications;
+    private Collection<String> notifications;
     private RemindTimer remindTimer;
     private SharedPreferences sharedPreferences;
     private String isEnabledPreferenceString;
     private Set<String> packageWhiteList;
 
-    public DFReminderNotificationListener() {
-        notifications = new HashSet<String>();
-    }
-
     @Override
     public void onCreate() {
         final Context context = getApplicationContext();
+        notifications = new HashSet<>();
         remindTimer = new RemindTimer(getApplicationContext(), notifications);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         isEnabledPreferenceString = context.getString(R.string.pref_key_enable_dfreminder);
@@ -39,25 +36,10 @@ public class DFReminderNotificationListener extends NotificationListenerService 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         synchronized (remindTimer) {
-            final String packageName = sbn.getPackageName();
-            if (packageWhiteList.contains(packageName)) {
-                Log.d(DFReminderMainActivity.TAG, "New notification from " + sbn.getPackageName() + " ignored");
+            if (shouldBeIgnored(sbn, true))
                 return;
-            }
-
-            if (!sbn.isClearable()) {
-                Log.d(DFReminderMainActivity.TAG, "Not clearable notification from " + sbn.getPackageName() + " ignored");
-                return;
-            }
-
-            if (!sharedPreferences.getBoolean(isEnabledPreferenceString, false)) {
-                Log.d(DFReminderMainActivity.TAG, "New notification from " + sbn.getPackageName() + ": DF reminder disabled");
-                return;
-            }
 
             notifications.add(sbn.getPackageName());
-
-            Log.d(DFReminderMainActivity.TAG, "New notification from " + sbn.getPackageName() + ", total: " + notifications.size());
             remindTimer.restartReminderTimer();
         }
     }
@@ -65,19 +47,36 @@ public class DFReminderNotificationListener extends NotificationListenerService 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         synchronized (remindTimer) {
-            final String packageName = sbn.getPackageName();
-            if (!packageWhiteList.contains(packageName)) {
-                Log.d(DFReminderMainActivity.TAG, "Removed notification from " + sbn.getPackageName() + " ignored");
+            if (shouldBeIgnored(sbn, false))
                 return;
-            }
 
-            if (!sbn.isClearable()) {
-                Log.d(DFReminderMainActivity.TAG, "Removed not clearable notification from " + sbn.getPackageName() + " ignored");
-                return;
-            }
-
-            notifications.remove(packageName);
-            Log.d(DFReminderMainActivity.TAG, "Removed notifications from " + sbn.getPackageName());
+            notifications.remove(sbn.getPackageName());
+            if (notifications.isEmpty())
+                remindTimer.stopReminderTimerIfRunning();
         }
+    }
+
+    private boolean shouldBeIgnored(StatusBarNotification sbn, boolean posted) {
+        final String prefix = posted ? "New" : "Removed";
+        final String packageName = sbn.getPackageName();
+
+        if (!sharedPreferences.getBoolean(isEnabledPreferenceString, false)) {
+            Log.d(DFReminderMainActivity.TAG, prefix + " notification from " + packageName + ": DF reminder disabled");
+            return true;
+        }
+
+        if (packageWhiteList.contains(packageName)) {
+            Log.d(DFReminderMainActivity.TAG, prefix + " notification from " + packageName + " ignored");
+            return true;
+        }
+
+        if (!sbn.isClearable()) {
+            Log.d(DFReminderMainActivity.TAG, prefix + " not clearable notification from " + packageName + " ignored");
+            return true;
+        }
+
+        Log.d(DFReminderMainActivity.TAG, prefix + " notification from " + packageName + ", total: " + notifications.size());
+
+        return false;
     }
 }

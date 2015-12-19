@@ -7,7 +7,6 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -32,7 +31,10 @@ import android.view.MenuItem;
  */
 public class DFReminderMainActivity extends AppCompatPreferenceActivity {
     public static final String TAG = "DF Reminder";
+    private Notifier notifier;
     private SharedPreferences sharedPreferences;
+    private String ringtonePreferenceString;
+    private String vibratePreferenceString;
     private String vibratePatternPreferenceString;
 
     /**
@@ -117,7 +119,10 @@ public class DFReminderMainActivity extends AppCompatPreferenceActivity {
         setupActionBar();
         addPreferencesFromResource(R.xml.dfreminder);
 
+        notifier = new Notifier(this);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        ringtonePreferenceString = getString(R.string.pref_key_ringtone);
+        vibratePreferenceString = getString(R.string.pref_key_vibrate_list);
         vibratePatternPreferenceString = getString(R.string.pref_key_vibrate_pattern);
 
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_remind_frequency)));
@@ -128,13 +133,44 @@ public class DFReminderMainActivity extends AppCompatPreferenceActivity {
         findPreference(getString(R.string.pref_key_try)).setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
-                new RemindTask(DFReminderMainActivity.this).run();
+                tryNotification();
                 return false;
             }
         });
 
         if (isFirstRun())
             showInfoDialog();
+    }
+
+    private void tryNotification() {
+
+        // ringtone
+        final String ringtone = sharedPreferences.getString(ringtonePreferenceString, "DEFAULT_SOUND");
+
+        // vibrate pattern
+        final String vibrate = sharedPreferences.getString(vibratePreferenceString, "Pattern");
+        long[] vibratePattern;
+        switch (vibrate) {
+            case "Once":
+                vibratePattern = new long[2];
+                vibratePattern[0] = 0;
+                vibratePattern[1] = 300;
+                break;
+
+            case "Pattern":
+                final String vibratePatternString = sharedPreferences.getString(vibratePatternPreferenceString, "0,200,50,200,50,200");
+                final String[] vibratePatternElements = vibratePatternString.split(",");
+                //Set the pattern for vibration
+                vibratePattern = new long[vibratePatternElements.length];
+                for (int i = 0; i < vibratePattern.length; i++)
+                    vibratePattern[i] = Integer.valueOf(vibratePatternElements[i].trim());
+                break;
+
+            default:
+                return;
+        }
+
+        notifier.playNotification();
     }
 
     private boolean isFirstRun() {

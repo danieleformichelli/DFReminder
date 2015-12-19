@@ -3,7 +3,6 @@
 
     <string name="dfreminder_service_name">DF Reminder Listener Service</string>
 
-    <string name="pref_key_enable_dfreminder">enable_dfreminder</string>
     <string name="pref_title_enable_dfreminder">Abilita DF Reminder</string>
 
     <string name="pref_key_vibrate_list">vibrate</string>
@@ -18,14 +17,10 @@
         <item>Once</item>
         <item>Pattern</item>
     </string-array>
-    <string name="pref_vibrate_once_pattern">0,200</string>
-    <string name="pref_vibrate_pattern_default">0,200,50,200,50,200</string>
 
-    <string name="pref_key_ringtone">ringtone</string>
     <string name="pref_title_ringtone">Suoneria</string>
-    <string name="pref_ringtone_silent">Silent</string>
+    <string name="pref_ringtone_silent">Silenzioso</string>
 
-    <string name="pref_key_remind_frequency">remind_frequency</string>
     <string name="pref_title_remind_frequency">Frequenza di notifica</string>
     <string-array name="pref_remind_frequency_titles">
         <item>1 minutes</item>
@@ -46,11 +41,14 @@
 
     <string name="pref_key_vibrate_pattern">pattern</string>
     <string name="pref_title_vibrate_pattern">Pattern di vibrazione</string>
-    <string name="pref_default_vibrate_pattern">0,200,50,200,50,200</string>
     <string name="action_info">Info</string>
     <string name="info_title">DF Reminder</string>
     <string name="info_msg">Con DF Reminder non perderai più nessuna notifica.\nPer far funzionare l\'applicazione devi abilitare il permesso di accedere alle notifiche (usa il pulsante in basso).</string>
     <string name="goto_notification_access">IMPOSTAZIONI</string>
     <string name="pref_key_try">try</string>
     <string name="pref_title_try">Prova Notifica</string>
+    <string name="set">Ok</string>
+    <string name="cancel">Annulla</string>
+    <string name="pref_title_time_start">Non disturbarmi dalle</string>
+    <string name="pref_title_time_end">Non disturbarmi fino alle</string>
 </resources>

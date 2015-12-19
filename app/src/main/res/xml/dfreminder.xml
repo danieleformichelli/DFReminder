@@ -46,4 +46,13 @@
         android:singleLine="true"
         android:maxLines="1" />
 
+    <com.formichelli.dfreminder.TimePreference
+        android:key="@string/pref_key_time_start"
+        android:title="@string/pref_title_time_start"
+        android:defaultValue="00:00"/>
+
+    <com.formichelli.dfreminder.TimePreference
+        android:key="@string/pref_key_time_end"
+        android:title="@string/pref_title_time_end"
+        android:defaultValue="00:00"/>
 </PreferenceScreen>
