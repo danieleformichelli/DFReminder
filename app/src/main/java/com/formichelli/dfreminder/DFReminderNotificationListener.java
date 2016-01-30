@@ -31,6 +31,9 @@ public class DFReminderNotificationListener extends NotificationListenerService 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         isEnabledPreferenceString = context.getString(R.string.pref_key_enable_dfreminder);
         packageWhiteList = new HashSet<>();
+        packageWhiteList.add("android");
+        packageWhiteList.add("com.android.providers.downloads");
+        packageWhiteList.add("com.android.vending");
     }
 
     @Override
