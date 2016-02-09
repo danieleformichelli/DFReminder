@@ -34,6 +34,7 @@ public class DFReminderNotificationListener extends NotificationListenerService 
         packageWhiteList.add("android");
         packageWhiteList.add("com.android.providers.downloads");
         packageWhiteList.add("com.android.vending");
+        packageWhiteList.add("com.android.systemui");
     }
 
     @Override
