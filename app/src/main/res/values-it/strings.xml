@@ -5,7 +5,6 @@
 
     <string name="pref_title_enable_dfreminder">Abilita DF Reminder</string>
 
-    <string name="pref_key_vibrate_list">vibrate</string>
     <string name="pref_title_vibrate_list">Vibrazione</string>
     <string-array name="pref_vibrate_list_titles">
         <item>No</item>
@@ -39,13 +38,11 @@
         <item>3600000</item>
     </string-array>
 
-    <string name="pref_key_vibrate_pattern">pattern</string>
     <string name="pref_title_vibrate_pattern">Pattern di vibrazione</string>
     <string name="action_info">Info</string>
     <string name="info_title">DF Reminder</string>
     <string name="info_msg">Con DF Reminder non perderai più nessuna notifica.\nPer far funzionare l\'applicazione devi abilitare il permesso di accedere alle notifiche (usa il pulsante in basso).</string>
     <string name="goto_notification_access">IMPOSTAZIONI</string>
-    <string name="pref_key_try">try</string>
     <string name="pref_title_try">Prova Notifica</string>
     <string name="set">Ok</string>
     <string name="cancel">Annulla</string>
